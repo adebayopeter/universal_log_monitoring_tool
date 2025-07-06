@@ -1,0 +1,118 @@
+---
+- name: Simulate Log Generation for Universal Log Monitoring Tool
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  
+  vars:
+    log_file: "{{ playbook_dir }}/../logs/app.log"
+    log_messages:
+      info:
+        - "[INFO] User authentication successful for user: admin"
+        - "[INFO] Database connection established successfully"
+        - "[INFO] API request processed in 120ms"
+        - "[INFO] Cache cleared successfully"
+        - "[INFO] Scheduled task completed: backup_database"
+        - "[INFO] New user registered: user_{{ lookup('pipe', 'date +%s') }}"
+        - "[INFO] File upload completed: document.pdf"
+        - "[INFO] Email sent to user@example.com"
+      
+      warning:
+        - "[WARN] High memory usage detected: 85%"
+        - "[WARN] Database connection pool nearly full"
+        - "[WARN] API rate limit approaching for IP: 192.168.1.100"
+        - "[WARN] Disk space low on /var/log partition"
+        - "[WARN] Slow query detected: SELECT * FROM users (500ms)"
+        - "[WARN] Failed login attempt from IP: 192.168.1.50"
+        - "[WARN] SSL certificate expires in 30 days"
+        - "[WARN] Cache hit ratio below optimal threshold"
+      
+      error:
+        - "[ERROR] Database connection failed: Connection timeout"
+        - "[ERROR] Failed to process payment: Invalid card number"
+        - "[ERROR] File not found: /uploads/missing_file.jpg"
+        - "[ERROR] Authentication failed: Invalid credentials"
+        - "[ERROR] API endpoint returned 500: Internal server error"
+        - "[ERROR] Email delivery failed: SMTP connection refused"
+        - "[ERROR] Memory allocation failed: Out of memory"
+        - "[ERROR] Configuration file corrupted: config.yaml"
+      
+      critical:
+        - "[CRITICAL] System out of memory - killing processes"
+        - "[CRITICAL] Database corruption detected in table: users"
+        - "[CRITICAL] Security breach attempt: Multiple failed logins"
+        - "[CRITICAL] Service unavailable: All workers down"
+        - "[CRITICAL] Disk full: Cannot write to log files"
+        - "[CRITICAL] SSL certificate expired - HTTPS unavailable"
+  
+  tasks:
+    - name: Set current datetime
+      set_fact:
+          current_time: "{{ lookup('pipe', 'date +%Y-%m-%dT%H:%M:%S') }}"
+
+    - name: Ensure logs directory exists
+      file:
+        path: "{{ playbook_dir }}/../logs"
+        state: directory
+        mode: '0755'
+    
+    - name: Create app.log if it doesn't exist
+      file:
+        path: "{{ log_file }}"
+        state: touch
+        mode: '0644'
+    
+    - name: Generate INFO log entries
+      lineinfile:
+        path: "{{ log_file }}"
+        line: "{{ current_time }} {{ item }}"
+        create: yes
+      loop: "{{ log_messages.info | shuffle | list | slice(3) }}"
+      tags: info
+    
+    - name: Generate WARNING log entries
+      lineinfile:
+        path: "{{ log_file }}"
+        line: "{{ current_time }} {{ item }}"
+        create: yes
+      loop: "{{ log_messages.warning | shuffle | list | slice(2) }}"
+      tags: warning
+    
+    - name: Generate ERROR log entries
+      lineinfile:
+        path: "{{ log_file }}"
+        line: "{{ current_time }} {{ item }}"
+        create: yes
+      loop: "{{ log_messages.error | shuffle | list | slice(1) }}"
+      tags: error
+    
+    - name: Generate CRITICAL log entries (occasionally)
+      lineinfile:
+        path: "{{ log_file }}"
+        line: "{{ current_time }} {{ item }}"
+        create: yes
+      loop: "{{ log_messages.critical | shuffle | list | slice(1) }}"
+      when: (current_time | int) % 10 == 0
+      tags: critical
+    
+    - name: Add framework-specific log entries
+      lineinfile:
+        path: "{{ log_file }}"
+        line: "{{ current_time }} {{ item }}"
+        create: yes
+      loop:
+        - "[2024-01-01 12:00:00] laravel.ERROR: SQLSTATE[42000]: Syntax error"
+        - "[2024-01-01 12:00:01] django.WARNING: Invalid form data submitted"
+        - "[2024-01-01 12:00:02] express.INFO: Server started on port 3000"
+      tags: framework
+    
+    - name: Display simulation summary
+      debug:
+        msg: |
+          Log simulation completed!
+          - Log file: {{ log_file }}
+          - Generated entries: INFO, WARNING, ERROR, CRITICAL
+          - Framework logs: Laravel, Django, Express
+          - Run: tail -f {{ log_file }} to monitor
+          - Run: ansible-playbook {{ playbook_dir }}/simulate_logs.yml -i localhost, --tags=continuous
+      tags: always

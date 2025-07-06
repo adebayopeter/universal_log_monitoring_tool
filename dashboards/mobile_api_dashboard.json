@@ -1,0 +1,160 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "📱 Mobile API Monitoring",
+    "tags": ["mobile", "api", "fastapi"],
+    "timezone": "browser",
+    "refresh": "10s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "📱 API Health Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(log_entries_total{source=\"mobile-api.log\"}[1m]) > 0",
+            "legendFormat": "API Active",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "INACTIVE"}}, "type": "value"},
+              {"1": {"text": "ACTIVE", "color": "green"}}
+            ]
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "📊 API Request Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(log_entries_total{source=\"mobile-api.log\"}[1m])) * 60",
+            "legendFormat": "Requests/min",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": {"mode": "palette-classic"}
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "⚠️ Error Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "(sum(rate(log_entries_total{source=\"mobile-api.log\",level=~\"error|critical\"}[5m])) / sum(rate(log_entries_total{source=\"mobile-api.log\"}[5m]))) * 100",
+            "legendFormat": "Error Rate %",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 15}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "🚀 FastAPI Performance",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(log_processing_seconds_bucket{source=\"mobile-api.log\"}[5m]))",
+            "legendFormat": "95th Response Time",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 0.5},
+                {"color": "red", "value": 1}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "📈 Mobile API Traffic Pattern",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(log_entries_total{source=\"mobile-api.log\",level=\"info\"}[1m]) * 60",
+            "legendFormat": "Success Requests/min",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(log_entries_total{source=\"mobile-api.log\",level=\"error\"}[1m]) * 60",
+            "legendFormat": "Error Requests/min",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "line",
+              "stacking": {"mode": "normal"}
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+      },
+      {
+        "id": 6,
+        "title": "🔍 API Error Analysis",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(log_entries_total{source=\"mobile-api.log\",level=\"warning\"}[1m]) * 60",
+            "legendFormat": "Warnings/min",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(log_entries_total{source=\"mobile-api.log\",level=\"critical\"}[1m]) * 60",
+            "legendFormat": "Critical/min",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "bars"
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+      }
+    ]
+  }
+}

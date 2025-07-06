@@ -1,0 +1,298 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Production Log Monitoring Dashboard",
+    "tags": ["logs", "production", "monitoring"],
+    "timezone": "browser",
+    "refresh": "5s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "🚨 Critical System Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(log_entries_total{level=\"critical\"})",
+            "legendFormat": "Critical Errors",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(log_entries_total{level=\"error\"})",
+            "legendFormat": "Total Errors",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 5}
+              ]
+            },
+            "unit": "short"
+          }
+        },
+        "gridPos": {"h": 4, "w": 8, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "📊 Live Error Rate (per minute)",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(log_errors_total[1m]) * 60",
+            "legendFormat": "{{source}} - {{framework}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "showPoints": "auto",
+              "pointSize": 4
+            },
+            "unit": "short"
+          }
+        },
+        "gridPos": {"h": 8, "w": 16, "x": 8, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "🏗️ Applications Health Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "count by (source) (rate(log_entries_total[1m]) > 0)",
+            "legendFormat": "{{source}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            },
+            "mappings": [
+              {"options": {"0": {"text": "DOWN"}}, "type": "value"},
+              {"options": {"1": {"text": "UP"}}, "type": "value"}
+            ]
+          }
+        },
+        "gridPos": {"h": 4, "w": 8, "x": 0, "y": 4}
+      },
+      {
+        "id": 4,
+        "title": "🌍 Framework Distribution",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (framework) (log_entries_total)",
+            "legendFormat": "{{framework}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "hideFrom": {"legend": false, "tooltip": false, "vis": false}
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8}
+      },
+      {
+        "id": 5,
+        "title": "📱 Application Log Volume",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(log_entries_total[1m]) * 60",
+            "legendFormat": "{{source}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "line",
+              "stacking": {"mode": "normal"}
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 16, "x": 8, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "⚠️ Warning Trends",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(log_warnings_total[5m]) * 60",
+            "legendFormat": "{{source}} - {{framework}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "bars",
+              "barAlignment": 0
+            },
+            "unit": "short"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+      },
+      {
+        "id": 7,
+        "title": "🔥 Critical Services Monitor",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(log_entries_total{source=~\"payment-service.log|user-service.log\",level=~\"error|critical\"}[1m]) * 60",
+            "legendFormat": "{{source}} - {{level}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 3}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+      },
+      {
+        "id": 8,
+        "title": "📈 Log Processing Performance",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(log_processing_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(log_processing_seconds_bucket[5m]))",
+            "legendFormat": "50th percentile",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "color": {"mode": "palette-classic"}
+          }
+        },
+        "gridPos": {"h": 6, "w": 12, "x": 0, "y": 24}
+      },
+      {
+        "id": 9,
+        "title": "💾 Log File Sizes",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "log_file_size_bytes",
+            "legendFormat": "{{filename}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes",
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1000000},
+                {"color": "red", "value": 10000000}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 6, "w": 12, "x": 12, "y": 24}
+      },
+      {
+        "id": 10,
+        "title": "🎯 Alert Summary",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(log_alerts_sent_total)",
+            "legendFormat": "Total Alerts",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(rate(log_alerts_sent_total[1h]) * 3600)",
+            "legendFormat": "Alerts/Hour",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 10},
+                {"color": "red", "value": 25}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 24, "x": 0, "y": 30}
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "application",
+          "type": "query",
+          "query": "label_values(log_entries_total, source)",
+          "refresh": 1,
+          "multi": true,
+          "includeAll": true
+        },
+        {
+          "name": "framework",
+          "type": "query",
+          "query": "label_values(log_entries_total, framework)",
+          "refresh": 1,
+          "multi": true,
+          "includeAll": true
+        }
+      ]
+    }
+  }
+}

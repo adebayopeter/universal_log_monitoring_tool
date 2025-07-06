@@ -1,0 +1,187 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "💳 Payment Service Monitoring",
+    "tags": ["payment", "critical", "business"],
+    "timezone": "browser",
+    "refresh": "10s",
+    "time": {
+      "from": "now-30m",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "💳 Payment Service Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"log-parser\"} and on() (rate(log_entries_total{source=\"payment-service.log\"}[1m]) > 0)",
+            "legendFormat": "Service Status",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "DOWN"}}, "type": "value"},
+              {"1": {"text": "UP", "color": "green"}}
+            ],
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "🚨 Payment Errors (Last 5 minutes)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(increase(log_entries_total{source=\"payment-service.log\",level=~\"error|critical\"}[5m]))",
+            "legendFormat": "Errors",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 5}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "💰 Payment Success Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "(sum(rate(log_entries_total{source=\"payment-service.log\",level=\"info\"}[5m])) / sum(rate(log_entries_total{source=\"payment-service.log\"}[5m]))) * 100",
+            "legendFormat": "Success Rate %",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 95},
+                {"color": "green", "value": 99}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "⚡ Payment Volume",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(log_entries_total{source=\"payment-service.log\"}[1m])) * 60",
+            "legendFormat": "Payments/min",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": {"mode": "palette-classic"}
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "📊 Payment Error Trends",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(log_entries_total{source=\"payment-service.log\",level=\"error\"}[1m]) * 60",
+            "legendFormat": "Errors/min",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(log_entries_total{source=\"payment-service.log\",level=\"critical\"}[1m]) * 60",
+            "legendFormat": "Critical/min",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "line",
+              "lineWidth": 2,
+              "fillOpacity": 20
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+      },
+      {
+        "id": 6,
+        "title": "💳 Payment Processing Timeline",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(log_entries_total{source=\"payment-service.log\",level=\"info\"}[1m]) * 60",
+            "legendFormat": "Successful Payments/min",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(log_entries_total{source=\"payment-service.log\",level=\"warning\"}[1m]) * 60",
+            "legendFormat": "Warnings/min",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "bars",
+              "barAlignment": 0
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+      },
+      {
+        "id": 7,
+        "title": "🔥 Critical Payment Issues",
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "log_entries_total{source=\"payment-service.log\",level=~\"error|critical\"}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "displayMode": "table"
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 12}
+      }
+    ]
+  }
+}

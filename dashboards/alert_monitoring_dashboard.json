@@ -1,0 +1,260 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "🚨 Alert & System Health Dashboard",
+    "tags": ["alerts", "health", "monitoring"],
+    "timezone": "browser", 
+    "refresh": "5s",
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "🟢 System Health Overview",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"log-parser\"}",
+            "legendFormat": "Log Parser",
+            "refId": "A"
+          },
+          {
+            "expr": "up{job=\"node-exporter\"}",
+            "legendFormat": "Node Exporter", 
+            "refId": "B"
+          },
+          {
+            "expr": "up{job=\"prometheus\"}",
+            "legendFormat": "Prometheus",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "DOWN", "color": "red"}}, "type": "value"},
+              {"options": {"1": {"text": "UP", "color": "green"}}, "type": "value"}
+            ],
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "🚨 Active Alerts Summary",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(log_alerts_sent_total)",
+            "legendFormat": "Total Alerts",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(rate(log_alerts_sent_total[1h]) * 3600)",
+            "legendFormat": "Alerts/Hour",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 10},
+                {"color": "red", "value": 50}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "📊 Alert Rate Timeline",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(log_alerts_sent_total{level=\"critical\"}[1m]) * 60",
+            "legendFormat": "Critical Alerts/min",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(log_alerts_sent_total{level=\"error\"}[1m]) * 60",
+            "legendFormat": "Error Alerts/min",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "line",
+              "lineWidth": 2,
+              "fillOpacity": 15
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 4}
+      },
+      {
+        "id": 4,
+        "title": "🔥 Critical Services Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(log_entries_total{source=\"payment-service.log\"}[1m]) > 0",
+            "legendFormat": "Payment Service",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(log_entries_total{source=\"user-service.log\"}[1m]) > 0",
+            "legendFormat": "User Service",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(log_entries_total{source=\"mobile-api.log\"}[1m]) > 0",
+            "legendFormat": "Mobile API",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "INACTIVE", "color": "red"}}, "type": "value"},
+              {"options": {"1": {"text": "ACTIVE", "color": "green"}}, "type": "value"}
+            ]
+          }
+        },
+        "gridPos": {"h": 6, "w": 12, "x": 0, "y": 12}
+      },
+      {
+        "id": 5,
+        "title": "⚡ Error Rate by Service",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(log_errors_total[1m]) * 60",
+            "legendFormat": "{{source}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "bars",
+              "barAlignment": 0
+            }
+          }
+        },
+        "gridPos": {"h": 6, "w": 12, "x": 12, "y": 12}
+      },
+      {
+        "id": 6,
+        "title": "📈 System Performance Metrics",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(prometheus_tsdb_symbol_table_size_bytes[5m])",
+            "legendFormat": "Prometheus Memory",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(log_processing_seconds_bucket[5m]))",
+            "legendFormat": "Log Processing Latency",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"}
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 18}
+      },
+      {
+        "id": 7,
+        "title": "💾 Log File Growth Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(log_file_size_bytes[5m]) * 300",
+            "legendFormat": "{{filename}} growth/5min",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes",
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "bars"
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 18}
+      },
+      {
+        "id": 8,
+        "title": "🎯 Alert Frequency Heatmap",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "increase(log_alerts_sent_total[1h])",
+            "legendFormat": "{{level}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "hideFrom": {"legend": false, "tooltip": false, "vis": false}
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 26}
+      },
+      {
+        "id": 9,
+        "title": "🔍 Recent Alert Activity",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "sort_desc(sum by (level, type) (log_alerts_sent_total))",
+            "format": "table",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "displayMode": "table",
+              "filterable": true
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 26}
+      }
+    ],
+    "annotations": {
+      "list": [
+        {
+          "name": "Critical Alerts",
+          "enable": true,
+          "iconColor": "red",
+          "expr": "increase(log_alerts_sent_total{level=\"critical\"}[1m]) > 0"
+        }
+      ]
+    }
+  }
+}

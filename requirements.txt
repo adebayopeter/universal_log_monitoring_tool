@@ -1,0 +1,12 @@
+ansible==11.7.0
+ansible-core==2.18.6
+cffi==1.17.1
+cryptography==45.0.5
+Jinja2==3.1.6
+MarkupSafe==3.0.2
+packaging==25.0
+prometheus_client==0.22.1
+pycparser==2.22
+PyYAML==6.0.2
+resolvelib==1.0.1
+watchdog==6.0.0

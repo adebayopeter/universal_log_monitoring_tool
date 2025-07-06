@@ -1,0 +1,75 @@
+{
+  "alert_rules": [
+    {
+      "name": "High Error Rate",
+      "query": "rate(log_errors_total[5m]) * 60",
+      "condition": "> 5",
+      "description": "Alert when error rate exceeds 5 errors per minute",
+      "severity": "warning",
+      "for": "2m"
+    },
+    {
+      "name": "Critical Errors Detected",
+      "query": "increase(log_entries_total{level=\"critical\"}[1m])",
+      "condition": "> 0", 
+      "description": "Alert immediately when critical errors are detected",
+      "severity": "critical",
+      "for": "0s"
+    },
+    {
+      "name": "Payment Service Down",
+      "query": "rate(log_entries_total{source=\"payment-service.log\"}[5m])",
+      "condition": "== 0",
+      "description": "Alert when payment service stops generating logs",
+      "severity": "critical",
+      "for": "1m"
+    },
+    {
+      "name": "High Memory Usage Warning",
+      "query": "increase(log_entries_total{level=\"warning\"}[5m])",
+      "condition": "> 10",
+      "description": "Alert when warning messages spike",
+      "severity": "warning", 
+      "for": "3m"
+    },
+    {
+      "name": "Log File Size Growing Rapidly",
+      "query": "increase(log_file_size_bytes[10m])",
+      "condition": "> 1000000",
+      "description": "Alert when log files grow by more than 1MB in 10 minutes",
+      "severity": "warning",
+      "for": "2m"
+    }
+  ],
+  "notification_channels": [
+    {
+      "name": "email-alerts",
+      "type": "email",
+      "settings": {
+        "addresses": "admin@yourcompany.com;devops@yourcompany.com",
+        "subject": "🚨 Log Monitoring Alert - {{ .CommonLabels.alertname }}",
+        "body": "Alert: {{ .CommonLabels.alertname }}\\n\\nSummary: {{ .CommonAnnotations.summary }}\\n\\nDetails: {{ .CommonAnnotations.description }}\\n\\nTime: {{ .CommonLabels.timestamp }}"
+      }
+    },
+    {
+      "name": "slack-alerts",
+      "type": "slack",
+      "settings": {
+        "webhook_url": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK",
+        "channel": "#alerts",
+        "username": "Grafana",
+        "title": "🚨 Log Alert: {{ .CommonLabels.alertname }}",
+        "text": "{{ .CommonAnnotations.summary }}\\n{{ .CommonAnnotations.description }}"
+      }
+    },
+    {
+      "name": "console-alerts",
+      "type": "webhook",
+      "settings": {
+        "url": "http://localhost:8000/webhook",
+        "method": "POST",
+        "body": "{{ json . }}"
+      }
+    }
+  ]
+}
